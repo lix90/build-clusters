@@ -1,0 +1,9 @@
+---
+- name: Check if R exists
+  stat:
+  register:
+
+- name: Copy R
+    
+- name: Install R
+  

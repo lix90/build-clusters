@@ -1,0 +1,84 @@
+---
+### base
+ansible_distribution_major_version: 7
+ansible_check_mode: no
+ansible_ssh_user: "vagrant"
+
+# spark app
+app_version: 0.0.4-SNAPSHOT
+app_name: "spark-app-skeleton-{{app_version}}"
+app_name_with_dependencies: "{{app_name}}-jar-with-dependencies"
+app_main_class: codes.showme.WordCount
+wordcount_file_name: wordcount.txt
+wordcount_result_directory: /wordcount_result/
+users_csv_filename: users.csv
+
+
+### JVM
+JAVA_HOME: /usr/lib/jvm/java
+
+###spark hadoop
+spark_app_with_dependencies_path: "./files/{{app_name_with_dependencies}}.jar"
+spark_app_path: "./files/{{app_name}}.jar"
+spark_version: 2.0.1
+spark_eventLog_dir: /tmp
+spark_master_hostname: 192.168.100.50
+spark_master_port: 7077
+spark_master_host_port: "spark://{{spark_master_hostname}}:{{spark_master_port}}"
+spark_slave: |
+  192.168.10.51
+  192.168.10.52
+spark_master_ip: 192.168.10.50
+spark_slave1_ip: 192.168.10.51
+spark_slave2_ip: 192.168.10.52
+
+spark_user: spark
+spark_group: spark
+spark_user_home: "/home/{{spark_user}}"
+spark_home: "{{spark_user_home}}/spark"
+spark_log_directory: "{{spark_home}}/log"
+spark_native_lib: "{{spark_home}}/lib/native"
+
+hbase_example_dependencies_folder: "{{spark_home}}/hbaseexmaple-jars"
+wordcount_dependencies_folder: "{{spark_home}}/wordcount-jars"
+
+
+### hadoop
+hadoop_version: 2.7
+hadoop_namenode_ip: 192.168.100.50
+hadoopnamenode_port: 8020
+hadoop_datanode1: 192.168.100.51
+hadoop_datanode2: 192.168.100.52
+hadoopnamenode: hadoopnamenode
+HADOOP_HEAPSIZE: 1000
+hadoop_user: hadoop
+hadoop_group: hadoop
+hadoop_user_home: "/home/{{hadoop_user}}"
+hadoop_home: "{{hadoop_user_home}}/hadoop"
+hadoop_datanodes:
+  - hadoopdatanode1
+  - hadoopdatanode2
+
+### hbase
+hbase_backup_masters: offlinenode1
+hbase_user: hbase
+hbase_group: hbase
+hbase_master_ip: hbasemaster
+hbase_user_home: "/home/{{hbase_user}}"
+hbase_home: "{{hbase_user_home}}/hbase"
+hbase_regionservers:
+  - offlinenode1
+  - offlinenode2
+
+###common
+hosts: |
+  {{ip}} {{ ansible_nodename }}
+  192.168.100.50 offlinenode1
+  192.168.100.51 offlinenode2
+  192.168.100.52 offlinenode3
+  192.168.100.50 spark-master
+  192.168.100.51 spark-slave1
+  192.168.100.52 spark-slave2
+  192.168.100.50 hadoopnamenode
+  192.168.100.51 hadoopdatanode1
+  192.168.100.52 hadoopdatanode2

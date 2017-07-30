@@ -1,0 +1,15 @@
+---
+- name: Check if RStudio exists
+  stat:
+  register:
+  tags:
+      - RStudio
+
+
+- name: Copy RStudio
+
+
+- name: mkdir for RStudio
+
+
+- name: Install RStudio

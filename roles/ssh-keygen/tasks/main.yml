@@ -1,0 +1,44 @@
+---
+- name: Check .ssh dir
+  file:
+    path="/home/{{ ansible_ssh_user }}/.ssh"
+    state=directory
+    mode=0700
+    owner="{{ ansible_ssh_user }}"
+    group="{{ ansible_ssh_user }}"
+
+- name: Create keys
+  shell: ssh-keygen -t rsa -b 4096 -N "{{ ansible_ssh_user }}" -f /home/vagrant/.ssh/id_rsa
+  args:
+    creates: "/home/{{ ansible_ssh_user }}/.ssh/id_rsa"
+
+- name: check private keys cert privileges
+  file:
+    path="/home/{{ ansible_ssh_user }}/.ssh/{{ item }}"
+    state=file
+    mode=0700
+    owner="{{ ansible_ssh_user }}"
+    group="{{ ansible_ssh_user }}"
+  with_items:
+    - id_rsa
+    - id_rsa.pub
+
+- name: Authorise key
+  authorized_key:
+    user="{{ ansible_ssh_user }}"
+    key="{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}"
+    
+# - name: fetch public key
+#   fetch:
+#     src: "/home/vagrant/.ssh/{{ item }}"
+#     dest: "../../../files/"
+#     flat: yes
+#   with_items:
+#     - id_rsa
+#     - id_rsa.pub
+#     - authorized_keys
+        
+# - name: retrieve public key
+#   shell: cat /home/vagrant/.ssh/id_rsa.pub
+#   register: master_public_key
+#   changed_when: false

@@ -1,0 +1,31 @@
+---
+- name: Install ansible
+  yum:
+    name: ansible
+    state: latest
+
+- name: Copy ansible.cfg & hosts
+  become: yes
+  shell: |
+    cp -r /etc/ansible/* /home/vagrant
+
+- name: Copy ansible.cfg
+  copy:
+    src="{{ item }}"
+    dest="/home/vagrant/{{ item }}"
+    owner=vagrant
+    group=vagrant
+    mode="u=wr,g=r,o=r"
+  with_items:
+      - ansible.cfg
+      - hosts
+
+    
+# - name: ssh-copy-id to slave1
+#   command:
+#     sshpass -p 'vagrant' ssh-copy-id -i /home/vagrant/.ssh/id_rsa.pub vagrant@spark-slave1
+    
+# - name: ssh-copy-id to slave2
+#   command:
+#     sshpass -p 'vagrant' ssh-copy-id -i /home/vagrant/.ssh/id_rsa.pub vagrant@spark-slave2
+
