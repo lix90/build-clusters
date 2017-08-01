@@ -1,0 +1,4 @@
+---
+ssh_user: vagrant
+ssh_group: vagrant
+project_path: /Users/lix/projects/spark-clusters

@@ -1,0 +1,6 @@
+[spark-master]
+spark-master
+
+[spark-slaves]
+spark-slave1
+spark-slave2

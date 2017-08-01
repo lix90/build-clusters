@@ -1,0 +1,60 @@
+---
+- name: "Check if {{ scala_tar_name }} exists"
+  stat:
+    path: "{{ user_home }}/{{ scala_tar_name }}"
+  register:
+    copiedScala
+  tags:
+    - scala
+
+- name: "Copy {{ scala_tar_name }}"
+  copy:
+    src: "{{ scala_tar_path }}"
+    dest: "{{ user_home }}/{{ scala_tar_name }}"
+    owner: "{{ user }}"
+    group: "{{ group }}"
+  ignore_errors: True
+  when: not copiedScala.stat.exists
+  tags:
+    - scala
+    
+- name: "Download Scala from {{ scala_download_url }}"
+  become: yes
+  become_user: "{{ user }}"
+  get_url:
+    dest: "{{ user_home }}/{{ scala_tar_name }}"
+    url: "{{scala_download_url}}"
+    owner: "{{ user }}"
+  when: not copiedScala.stat.exists
+
+- name: "Unpack {{ scala_tar_name }}"
+  become: yes
+  become_user: "{{ user }}"
+  unarchive:
+    copy: false
+    dest: "{{ user_home }}"
+    src: "{{ user_home }}/{{ scala_tar_name }}"
+  tags:
+    scala
+
+# - name: link Scala directory "{{ scala_user_home }}/{{ scala }}"
+#   file:
+#     dest: "{{ scala_home }}"
+#     src: "{{ scala_user_home }}/scala-{{scala_version}}"
+#     state: link
+#     owner: "{{ scala_user }}"
+#     group: "{{ scala_group }}"
+#   tags:
+#     scala
+
+- name: Configure | Update Scala environment variables
+  lineinfile:
+    dest: "/etc/profile"
+    line: "export SCALA_HOME={{scala_home}}"
+    state: present
+
+- name: Add Scala PATH
+  lineinfile:
+    dest: "/etc/profile"
+    line: "export PATH=$PATH:$SCALA_HOME/bin"
+    state: present

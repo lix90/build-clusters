@@ -1,5 +1,5 @@
 # -*- mode: ruby -*-
-# # vi: set ft=ruby :
+# vi: set ft=ruby :
 
 # Vagrant.configure(2) do |config|
 
@@ -54,27 +54,33 @@
 
 
 cluster = {
-  "spark-master" => { :ip => "192.168.100.50", :cpus => 1, :mem => 1024 },
-  "spark-slave1" => { :ip => "192.168.100.51", :cpus => 1, :mem => 1024 },
-  "spark-slave2" => { :ip => "192.168.100.52", :cpus => 1, :mem => 1024 },
-  # "spark-slave3" => { :ip => "192.168.100.53", :cpus => 1, :mem => 1024 },
+  "spark-master" => { :ip => "192.168.100.50", :cpus => 1, :mem => 512 },
+  "spark-slave1" => { :ip => "192.168.100.51", :cpus => 1, :mem => 512 },
+  "spark-slave2" => { :ip => "192.168.100.52", :cpus => 1, :mem => 512 },
+  # "spark-slave3" => { :ip => "192.168.100.53", :cpus => 1, :mem => 512 },
 }
 
 Vagrant.configure(2) do |config|
 
   ANSIBLE_RAW_SSH_ARGS = []
   VAGRANT_VM_PROVIDER = "virtualbox"
+  config.ssh.insert_key = false
+  # config.ssh.private_key_path = "~/.ssh/id_rsa"
+  # config.ssh.username = "vagrant" 
+  # config.ssh.password = "vagrant"
 
+  # Manage /etc/hosts on host and VMs
+  config.hostmanager.enabled = false
+  config.hostmanager.manage_host = true
+  config.hostmanager.include_offline = true
+  config.hostmanager.ignore_private_ip = false
+  
   cluster.each_with_index do |(hostname, info), index|
     config.vm.define hostname do |cfg|
-
       cfg.vm.provider :virtualbox do |vb, override|
+
         override.vm.box = "centos/7"
-        override.vm.network :private_network, ip: "#{info[:ip]}"
-        if hostname == "spark-master"
-          override.vm.network :forwarded_port, guest: 8080, host: 8080
-          override.vm.network :forwarded_port, guest: 7077, host: 7077
-        end
+        override.vm.network :private_network, ip: "#{info[:ip]}" 
         override.vm.hostname = hostname
 
         vb.name = hostname
@@ -84,18 +90,25 @@ Vagrant.configure(2) do |config|
                       "--hwvirtex", "on"]
       end
 
-      # provision each nodes with ansible at last
-      # if index == cluster.length - 1
-      #   cfg.vm.provision :ansible do |ansible|
-      #     # ansible.verbose = "vvvv"
-      #     ansible.inventory_path = "./ansible/inventory"
-      #     ansible.playbook = "./ansible/spark-cluster.yml"
-      #     ansible.limit = 'all'
-      #     ansible.sudo = true
-      #     ansible.extra_vars = { ansible_ssh_user: 'vagrant' }
-      #   end # end provision
-      # end #end if
+      config.vm.provision :hostmanager
+      
+      if index == cluster.size - 1
+        cfg.vm.provision :ansible do |ansible|
+          ansible.verbose = "v"
+          ansible.inventory_path = "inventory"
+          ansible.playbook = "playbook.yml"
+          ansible.limit = 'all'
+          ansible.groups = {
+            "master" => ["spark-master"],
+            "slaves" => ["spark-slave[1:2]"]
+          }
+          # ansible.sudo = true
+          # ansible.extra_vars = { ansible_ssh_user: 'vagrant' }
+        end # end provision
+        
+      end #end if
 
+      
     end # end config
 
   end #end cluster

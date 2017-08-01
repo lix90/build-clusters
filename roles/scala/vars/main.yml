@@ -1,0 +1,20 @@
+---
+user: "vagrant"
+group: "vagrant"
+user_home: "/home/{{user}}"
+configure_files_path: "~/Documents/spark-configure-files"
+
+# scala
+scala_version: "2.12.3"
+scala_tar_name: "scala-{{scala_version}}.tgz"
+scala_tar_path: "{{configure_files_path}}/{{scala_tar_name}}"
+scala_download_url: "http://www.scala-lang.org/files/archive/{{scala_tar_name}}"
+scala_home: "{{user_home}}/scala-{{scala_version}}"
+
+# sbt
+sbt_version: "0.13.16"
+sbt_tar_name: "sbt-{{sbt_version}}.tgz"
+sbt_tar_path: "{{configure_files_path}}/{{sbt_tar_name}}"
+sbt_download_url: "http://dl.bintray.com/sbt/native-packages/sbt/{{sbt_version}}/{{sbt_tar_name}}"
+sbt_home: "{{user_home}}/sbt-{{sbt_version}}"
+sbt_link_target: "/usr/bin/sbt"

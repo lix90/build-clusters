@@ -1,0 +1,5 @@
+---
+scala_version: "2.10.3"
+sbt_version: "0.13.1"
+user: vagrant
+group: vagrant

@@ -1,0 +1,111 @@
+---
+
+- name: hadoop environmental variables
+  blockinfile:
+    path: "/etc/profile"
+    block: |
+      export HADOOP_HOME={{hadoop_home}}
+      export HADOOP_PREFIX={{hadoop_home}}
+      export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
+  tags:
+    - hadoop
+
+- name: config hadoop
+  template:
+    src: "{{item}}"
+    dest: "{{hadoop_home}}/etc/hadoop"
+    owner: "{{ hadoop_user }}"
+    group: "{{ hadoop_group }}"
+  with_items:
+    - etc/hadoop/hdfs-site.xml
+    - etc/hadoop/mapred-site.xml
+    - etc/hadoop/core-site.xml
+    - etc/hadoop/yarn-site.xml
+    - etc/hadoop/slaves
+    - etc/hadoop/hadoop-env.sh
+  tags:
+    - hadoop
+
+- stat:
+    path: "{{ hadoop_home }}/name/"
+  register: namenode_format
+  tags:
+    - hadoop
+
+- name: format namenode
+  become_user: "{{hadoop_user}}"
+  command: "{{ hadoop_home }}/bin/hdfs namenode -format"
+  when: hadoop_is_namenode is defined and  hadoop_is_namenode == "true" and namenode_format.stat.exists == False
+  tags:
+    - hadoop
+
+
+- name: stop hadoop-dfs
+  become_user: "{{hadoop_user}}"
+  action: "shell {{ hadoop_home }}/sbin/hadoop-daemon.sh  --script hdfs stop namenode"
+  when: hadoop_is_namenode is defined and  hadoop_is_namenode == "true"
+  ignore_errors: yes
+  tags:
+    - hadoop
+
+- name: start hadoop-dfs
+  become_user: "{{hadoop_user}}"
+  action: "shell {{ hadoop_home }}/sbin/hadoop-daemon.sh  --script hdfs start namenode"
+  when: hadoop_is_namenode is defined and  hadoop_is_namenode == "true"
+  tags:
+    - hadoop
+
+- name: stop yarn-resourcemanager
+  become_user: "{{hadoop_user}}"
+  action: "shell {{ hadoop_home }}/sbin/yarn-daemon.sh stop resourcemanager"
+  when: hadoop_is_namenode is defined and  hadoop_is_namenode == "true"
+  ignore_errors: yes
+
+- name: start yarn-resourcemanager
+  become_user: "{{hadoop_user}}"
+  action: "shell {{ hadoop_home }}/sbin/yarn-daemon.sh start resourcemanager"
+  when: hadoop_is_namenode is defined and  hadoop_is_namenode == "true"
+
+- name: stop hadoop-datanode
+  become_user: "{{hadoop_user}}"
+  action: "shell {{ hadoop_home }}/sbin/hadoop-daemon.sh  --script hdfs stop datanode"
+  when: hadoop_is_datanode is defined and hadoop_is_datanode == "true"
+  ignore_errors: yes
+  tags:
+    - hadoop
+
+- name: start hadoop-datanode
+  become_user: "{{hadoop_user}}"
+  action: "shell {{ hadoop_home }}/sbin/hadoop-daemon.sh  --script hdfs start datanode"
+  when: hadoop_is_datanode is defined and hadoop_is_datanode == "true"
+  tags:
+    - hadoop
+
+
+- name: stop yarn-nodemanager
+  become_user: "{{hadoop_user}}"
+  action: "shell {{ hadoop_home }}/sbin/yarn-daemon.sh stop nodemanager"
+  when: hadoop_is_datanode is defined and hadoop_is_datanode == "true"
+  ignore_errors: yes
+
+  
+- name: start yarn-nodemanager
+  become_user: "{{hadoop_user}}"
+  action: "shell {{ hadoop_home }}/sbin/yarn-daemon.sh start nodemanager"
+  when: hadoop_is_datanode is defined and hadoop_is_datanode == "true"
+
+
+- name: refreshDFSNodes
+  become_user: "{{hadoop_user}}"
+  command: "{{ hadoop_home }}/bin/hdfs dfsadmin -refreshNodes"
+  when: hadoop_is_namenode is defined and  hadoop_is_namenode == "true"
+  ignore_errors: yes
+  tags:
+    - hadoop
+
+- name: refreshYarnNodes
+  become_user: "{{hadoop_user}}"
+  command: "{{ hadoop_home }}/bin/yarn rmadmin -refreshNodes"
+  when: hadoop_is_namenode is defined and  hadoop_is_namenode == "true"
+  ignore_errors: yes
+

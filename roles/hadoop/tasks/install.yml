@@ -1,0 +1,92 @@
+---
+# - name: create hadoop group
+#   group:
+#     name: "{{hadoop_group}}"
+#     system: yes
+#   tags:
+#     - hadoop
+
+# - name: create hadoop user
+#   user:
+#     name: "{{hadoop_user}}"
+#     group: "{{hadoop_group}}"
+#     system: yes
+#   tags:
+#     - hadoop
+
+# - name: create .ssh folder
+#   file:
+#     path: "{{hadoop_user_home}}/.ssh"
+#     state: directory
+#     mode: 0700
+#     owner: "{{ hadoop_user }}"
+#     group: "{{ hadoop_group }}"
+#   tags:
+#     - hadoop
+
+# - name: copy ssh key
+#   copy:
+#     src: "{{item}}"
+#     dest: "{{hadoop_user_home}}/.ssh"
+#     owner: "{{ hadoop_user }}"
+#     group: "{{ hadoop_group }}"
+#     mode: 0600
+#   with_items:
+#     - id_rsa
+#     - id_rsa.pub
+#     - authorized_keys
+#   tags:
+#     - hadoop
+
+- name: "copy {{hadoop_tar_name}}"
+  copy:
+    src: "{{hadoop_local_path}}"
+    dest: "/home/{{ hadoop_user }}/{{hadoop_tar_name}}"
+    owner: "{{hadoop_user}}"
+    group: "{{hadoop_group}}"
+  ignore_errors: no
+  tags:
+    - hadoop
+    
+- stat:
+    path: "/home/{{ hadoop_user }}/{{hadoop_tar_name}}"
+  register: is_hadoop_copied
+  tags:
+    - hadoop
+
+- name: "Download Hadoop"
+  get_url:
+    dest: "/home/{{hadoop_user}}/{{hadoop_tar_name}}"
+    url: "{{hadoop_download_url}}"
+    owner: "{{hadoop_user}}"
+  when: is_hadoop_copied.stat.exists == false
+  tags:
+    - hadoop
+
+- name: "Unpack hadoop"
+  become_user: "{{ hadoop_user}}"
+  unarchive:
+    copy: false
+    dest: "/home/{{ hadoop_user}}"
+    src: "/home/{{ hadoop_user }}/{{hadoop_tar_name}}"
+  tags:
+    - hadoop
+
+# - name: link hadoop directory "{{hadoop_user_home}}/hadoop-{{hadoop_full_version}}"
+#   file:
+#     dest: "{{hadoop_home}}"
+#     src: "{{hadoop_user_home}}/hadoop-{{hadoop_full_version}}"
+#     state: link
+#     owner: "{{ hadoop_user }}"
+#     group: "{{ hadoop_group }}"
+#   tags:
+#     - hadoop
+
+- name: create hadoop log directory
+  file:
+    path: "{{hadoop_log_directory}}"
+    state: directory
+    owner: "{{ hadoop_user }}"
+    group: "{{ hadoop_group }}"
+  tags:
+    - hadoop

@@ -1,11 +1,10 @@
-[all]
-192.168.100.50
-192.168.100.51
-192.168.100.52
+
+spark-master ansible_ssh_host=127.0.0.1 ansible_ssh_port=2222
+spark-slave1 ansible_ssh_host=127.0.0.1 ansible_ssh_port=2200
+spark-slave2 ansible_ssh_host=127.0.0.1 ansible_ssh_port=2201
 
 [master]
-192.168.100.50
+spark-master ansible_ssh_port=2222 hadoop_is_namenode="true" spark_is_master="true"
 
-[slave]
-192.168.100.51
-192.168.100.52
+[slaves]
+spark-slave[1:2] hadoop_is_datanode="true" spark_is_slave="true"

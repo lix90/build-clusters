@@ -1,9 +1,8 @@
 ---
 
-- name: Insert hosts
+- name: Update host
   blockinline:
-    path: '/etc/hosts'
+    backup: yes
+    dest: '/etc/hosts'
     block: |
-      192.168.11.50 spark-master
-      192.168.11.51 spark-slave1
-      192.168.11.52 spark-slave2
+      {{ hosts }}

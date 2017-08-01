@@ -1,0 +1,10 @@
+---
+- stat:
+    path: "/home/{{hadoop_user}}/hadoop-{{hadoop_full_version}}"
+  register: is_hadoop_installed
+
+- include: install.yml
+  when: not is_hadoop_installed.stat.exists
+
+- include: configure.yml
+  

@@ -3,6 +3,7 @@
 ansible_distribution_major_version: 7
 ansible_check_mode: no
 ansible_ssh_user: "vagrant"
+configure_files_path: ~/Documents/spark-configure-files
 
 # spark app
 app_version: 0.0.4-SNAPSHOT
@@ -20,17 +21,17 @@ JAVA_HOME: /usr/lib/jvm/java
 ###spark hadoop
 spark_app_with_dependencies_path: "./files/{{app_name_with_dependencies}}.jar"
 spark_app_path: "./files/{{app_name}}.jar"
-spark_version: 2.0.1
+spark_version: 2.2.0
 spark_eventLog_dir: /tmp
 spark_master_hostname: 192.168.100.50
 spark_master_port: 7077
 spark_master_host_port: "spark://{{spark_master_hostname}}:{{spark_master_port}}"
 spark_slave: |
-  192.168.10.51
-  192.168.10.52
-spark_master_ip: 192.168.10.50
-spark_slave1_ip: 192.168.10.51
-spark_slave2_ip: 192.168.10.52
+  192.168.100.51
+  192.168.100.52
+spark_master_ip: 192.168.100.50
+spark_slave1_ip: 192.168.100.51
+spark_slave2_ip: 192.168.100.52
 
 spark_user: spark
 spark_group: spark
@@ -51,10 +52,6 @@ hadoop_datanode1: 192.168.100.51
 hadoop_datanode2: 192.168.100.52
 hadoopnamenode: hadoopnamenode
 HADOOP_HEAPSIZE: 1000
-hadoop_user: hadoop
-hadoop_group: hadoop
-hadoop_user_home: "/home/{{hadoop_user}}"
-hadoop_home: "{{hadoop_user_home}}/hadoop"
 hadoop_datanodes:
   - hadoopdatanode1
   - hadoopdatanode2
@@ -70,15 +67,14 @@ hbase_regionservers:
   - offlinenode1
   - offlinenode2
 
-###common
+### base
 hosts: |
-  {{ip}} {{ ansible_nodename }}
-  192.168.100.50 offlinenode1
-  192.168.100.51 offlinenode2
-  192.168.100.52 offlinenode3
   192.168.100.50 spark-master
   192.168.100.51 spark-slave1
   192.168.100.52 spark-slave2
   192.168.100.50 hadoopnamenode
   192.168.100.51 hadoopdatanode1
   192.168.100.52 hadoopdatanode2
+  192.168.100.51 offlinenode1
+  192.168.100.52 offlinenode2
+  192.168.100.53 offlinenode3

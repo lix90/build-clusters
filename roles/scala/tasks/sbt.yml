@@ -1,0 +1,48 @@
+---
+- name: "Check if {{ sbt_tar_name }} exists"
+  stat:
+    path: "{{ user_home }}/{{ sbt_tar_name }}"
+  register:
+    copiedsbt
+  tags:
+    - scala
+
+- name: "Copy {{ sbt_tar_name }}"
+  copy:
+    src: "{{ sbt_tar_path }}"
+    dest: "{{ user_home }}/{{ sbt_tar_name }}"
+    owner: "{{ user }}"
+    group: "{{ group }}"
+  ignore_errors: True
+  when: not copiedsbt.stat.exists
+  tags:
+    - scala
+    
+- name: "Download sbt from {{ sbt_download_url }}"
+  become: yes
+  become_user: "{{ user }}"
+  get_url:
+    dest: "{{ user_home }}/{{ sbt_tar_name }}"
+    url: "{{ sbt_download_url }}"
+    owner: "{{ user }}"
+  when: not copiedsbt.stat.exists
+
+- name: "Unpack {{ sbt_tar_name }}"
+  become: yes
+  become_user: "{{ user }}"
+  unarchive:
+    copy: false
+    dest: "{{ user_home }}"
+    src: "{{ user_home }}/{{ sbt_tar_name }}"
+  tags:
+    scala
+
+- name: link sbt directory "{{ user_home }}/sbt-{{ sbt_version }}"
+  file:
+    dest: "{{ sbt_link_target }}"
+    src: "{{ user_home }}/sbt-{{sbt_version}}/bin/sbt"
+    state: link
+    owner: "{{ user }}"
+    group: "{{ group }}"
+  tags:
+    scala

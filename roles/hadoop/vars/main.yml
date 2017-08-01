@@ -1,0 +1,15 @@
+---
+hadoop_full_version: 2.7.3
+hadoop_short_version: 2.7
+hadoop_tar_name: "hadoop-{{hadoop_full_version}}.tar.gz"
+hadoop_local_path: "{{configure_files_path}}/{{hadoop_tar_name}}"
+hadoop_download_url: "http://mirrors.hust.edu.cn/apache/hadoop/common/hadoop-{{hadoop_full_version}}/{{hadoop_tar_name}}"
+hadoop_user: vagrant
+hadoop_group: vagrant
+hadoop_user_home: "/home/{{hadoop_user}}"
+hadoop_home: "{{hadoop_user_home}}/hadoop-{{hadoop_full_version}}"
+hadoop_log_directory: "{{hadoop_home}}/log"
+hadoop_native_lib_version: "{{hadoop_short_version}}.0"
+hadoop_native_lib_name: "hadoop-native-64-{{hadoop_native_lib_version}}.tar" 
+hadoop_native_lib_url: "http://dl.bintray.com/sequenceiq/sequenceiq-bin/{{hadoop_native_lib_name}}"
+hadoop_native_lib_local: "{{configure_files_path}}{{hadoop_native_lib_name}}"

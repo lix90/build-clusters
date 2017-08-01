@@ -1,42 +1,87 @@
 ---
+# Make password-less access between clusters
+
 - name: Check .ssh dir
   file:
-    path="/home/{{ ansible_ssh_user }}/.ssh"
+    path="/home/{{ ssh_user }}/.ssh"
     state=directory
     mode=0700
-    owner="{{ ansible_ssh_user }}"
-    group="{{ ansible_ssh_user }}"
+    owner="{{ ssh_user }}"
+    group="{{ ssh_group }}"
 
 - name: Create keys
-  shell: ssh-keygen -t rsa -b 4096 -N "{{ ansible_ssh_user }}" -f /home/vagrant/.ssh/id_rsa
+  shell: ssh-keygen -t rsa -b 4096 -N "" -f /home/vagrant/.ssh/id_rsa
   args:
-    creates: "/home/{{ ansible_ssh_user }}/.ssh/id_rsa"
+    creates: "/home/{{ ssh_user }}/.ssh/id_rsa"
 
 - name: check private keys cert privileges
   file:
-    path="/home/{{ ansible_ssh_user }}/.ssh/{{ item }}"
+    path="/home/{{ ssh_user }}/.ssh/{{ item }}"
     state=file
     mode=0700
-    owner="{{ ansible_ssh_user }}"
-    group="{{ ansible_ssh_user }}"
+    owner="{{ ssh_user }}"
+    group="{{ ssh_group }}"
   with_items:
     - id_rsa
+    - id_rsa.pub    
+
+- fetch:
+    src: "/home/{{ ssh_user }}/.ssh/{{ item }}"
+    dest: "{{project_path}}/files/{{inventory_hostname}}_{{item}}"
+    flat: yes
+  with_items:
     - id_rsa.pub
 
-- name: Authorise key
-  authorized_key:
-    user="{{ ansible_ssh_user }}"
-    key="{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}"
+- stat: path="/home/{{ssh_user}}/.ssh/authorized_keys"
+  register: p
+
+- name: create authorized_key
+  file:
+    path="/home/{{ssh_user}}/.ssh/authorized_keys"
+    state=touch
+    owner="{{ssh_user}}"
+    group="{{ssh_user}}"
+    mode=0700
+  when: p.stat.exists is defined and not p.stat.exists
+
+- stat:
+    path: "/home/{{ssh_user}}/.ssh/keys/"
+  register: d
     
+- file:
+    path: "/home/{{ssh_user}}/.ssh/keys/"
+    state: directory
+  when: d.stat.exists is defined and not d.stat.exists
+
+- copy:
+    src: "{{item}}"
+    dest: "/home/{{ssh_user}}/.ssh/keys/"
+  with_fileglob:
+    - "{{project_path}}/files/spark-*.pub"
+
+- name: Insert public keys
+  shell: |
+    cd /home/{{ssh_user}}/.ssh/keys/;
+    ls | while read p; do cat $p >> /home/{{ssh_user}}/.ssh/authorized_keys; done
+  
+    
+#   args:
+#     creates: "/home/{{ssh_user}}/.ssh/authorized_key"
+#   when: spark_is_slave is defined and spark_is_slave == "true"
+
+# - name: Authorise key
+#   authorized_key:
+#     user="{{ ssh_user }}"
+#     key="{{ lookup('file', '{{project_path}}/files/id_rsa.pub') }}"
+  # when: spark_is_slave is defined and spark_is_slave == "true"
+
 # - name: fetch public key
 #   fetch:
 #     src: "/home/vagrant/.ssh/{{ item }}"
 #     dest: "../../../files/"
 #     flat: yes
 #   with_items:
-#     - id_rsa
 #     - id_rsa.pub
-#     - authorized_keys
         
 # - name: retrieve public key
 #   shell: cat /home/vagrant/.ssh/id_rsa.pub
