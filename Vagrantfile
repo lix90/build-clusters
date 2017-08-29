@@ -64,9 +64,11 @@ Vagrant.configure(2) do |config|
 
   ANSIBLE_RAW_SSH_ARGS = []
   VAGRANT_VM_PROVIDER = "virtualbox"
+
+  # Config ssh
   config.ssh.insert_key = false
-  # config.ssh.private_key_path = "~/.ssh/id_rsa"
-  # config.ssh.username = "vagrant" 
+  config.ssh.private_key_path = "~/.vagrant.d/insecure_private_key"
+  config.ssh.username = "vagrant"
   # config.ssh.password = "vagrant"
 
   # Manage /etc/hosts on host and VMs
@@ -74,6 +76,11 @@ Vagrant.configure(2) do |config|
   config.hostmanager.manage_host = true
   config.hostmanager.include_offline = true
   config.hostmanager.ignore_private_ip = false
+
+  # Install vbguest addition
+  config.vbguest.auto_update = true
+  config.vbguest.iso_path = "/Users/lix/Documents/spark-configure-files/VBoxGuestAdditions_5.1.24.iso"
+
   
   cluster.each_with_index do |(hostname, info), index|
     config.vm.define hostname do |cfg|
@@ -89,7 +96,7 @@ Vagrant.configure(2) do |config|
                       "--cpus", info[:cpus],
                       "--hwvirtex", "on"]
       end
-
+      
       config.vm.provision :hostmanager
       
       if index == cluster.size - 1

@@ -7,6 +7,7 @@
       export HADOOP_HOME={{hadoop_home}}
       export HADOOP_PREFIX={{hadoop_home}}
       export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
+      export PATH=$PATH:$HADOOP_HOME/bin
   tags:
     - hadoop
 
@@ -48,6 +49,7 @@
   tags:
     - hadoop
 
+
 - name: start hadoop-dfs
   become_user: "{{hadoop_user}}"
   action: "shell {{ hadoop_home }}/sbin/hadoop-daemon.sh  --script hdfs start namenode"
@@ -55,17 +57,20 @@
   tags:
     - hadoop
 
+
 - name: stop yarn-resourcemanager
   become_user: "{{hadoop_user}}"
   action: "shell {{ hadoop_home }}/sbin/yarn-daemon.sh stop resourcemanager"
   when: hadoop_is_namenode is defined and  hadoop_is_namenode == "true"
   ignore_errors: yes
 
+
 - name: start yarn-resourcemanager
   become_user: "{{hadoop_user}}"
   action: "shell {{ hadoop_home }}/sbin/yarn-daemon.sh start resourcemanager"
   when: hadoop_is_namenode is defined and  hadoop_is_namenode == "true"
 
+  
 - name: stop hadoop-datanode
   become_user: "{{hadoop_user}}"
   action: "shell {{ hadoop_home }}/sbin/hadoop-daemon.sh  --script hdfs stop datanode"
@@ -74,6 +79,7 @@
   tags:
     - hadoop
 
+    
 - name: start hadoop-datanode
   become_user: "{{hadoop_user}}"
   action: "shell {{ hadoop_home }}/sbin/hadoop-daemon.sh  --script hdfs start datanode"

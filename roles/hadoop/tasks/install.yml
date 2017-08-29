@@ -40,8 +40,8 @@
 
 - name: "copy {{hadoop_tar_name}}"
   copy:
-    src: "{{hadoop_local_path}}"
-    dest: "/home/{{ hadoop_user }}/{{hadoop_tar_name}}"
+    src: "{{configure_files_path}}/{{hadoop_tar_name}}"
+    dest: "/home/{{ hadoop_user }}"
     owner: "{{hadoop_user}}"
     group: "{{hadoop_group}}"
   ignore_errors: no

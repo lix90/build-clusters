@@ -1,15 +1,47 @@
 ---
-- name: Check if RStudio exists
-  stat:
-  register:
+- name: copy rstudio
+  copy:
+    src: "{{configure_files_path}}/{{rstudio_rpm}}"
+    dest: "/home/{{rstudio_user}}"
   tags:
-      - RStudio
+    - rstudio
 
+- name: Check if RStudio is copied
+  stat: path="/home/{{rstudio_user}}/{{rstudio_rpm}}"
+  register: is_rstudio_copied
+  tags:
+    - rstudio
+  
+- name: Check the newest version of RStudio
+  uri: url="http://download2.rstudio.org/current.ver" return_content=yes
+  register: rstudio_version
+  become: no
+  when: not is_rstudio_copied.stat.exists
+  tags:
+    - rstudio
 
-- name: Copy RStudio
+# - get_url:
+#     url: "{{rstudio_server_url}}"
+#     dest: "/home/{{rstudio_user}}"
+#     checksum: md5:5c72047380e2944926acb77b69e0c4a0
 
+- name: Get the archive of RStudio Server
+  get_url:
+    url: "https://download2.rstudio.org/rstudio-server-rhel-{{ rstudio_version.content }}-x86_64.rpm"
+    dest: "/home/{{rstudio_user}}"
+  become: no
+  when: not is_rstudio_copied.stat.exists
+  tags:
+    - rstudio
+  
+- name: Installing rstudio server
+  yum:
+    name: "/home/{{rstudio_user}}/{{rstudio_rpm}}"
+    state: present
+    disable_gpg_check: yes
+  tags:
+    - rstudio
 
-- name: mkdir for RStudio
-
-
-- name: Install RStudio
+- command: sudo rstudio-server restart
+  tags:
+    - rstudio

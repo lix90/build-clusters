@@ -77,7 +77,7 @@ export SPARK_LOG_DIR={{spark_log_directory}}
 export SPARK_MASTER_HOST={{spark_master_hostname}}
 export SPARK_WORKER_MEMORY=1G
 export JAVA_HOME={{JAVA_HOME}}
-export SPARK_WORKER_CORES=2
+export SPARK_WORKER_CORES=1
 # export HADOOP_HOME={{hadoop_home}}
 export LD_LIBRARY_PATH={{spark_native_lib}}:$LD_LIBRARY_PATH
 

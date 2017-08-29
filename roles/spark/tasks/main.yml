@@ -1,51 +1,106 @@
 ---
 
-- name: "Check if {{ spark_tar_name }} exists"
-  stat:
-    path: "{{ spark_user_home }}/{{scala_tar_name }}"
-  register:
-    copiedSpark
+- name: create spark group
+  group:
+    name: "{{spark_group}}"
+    system: yes
+  tags:
+    - spark
+
+- name: create spark user
+  user:
+    name: "{{spark_user}}"
+    group: "{{spark_group}}"
+    system: yes
+  tags:
+    - spark
+
+# - name: Create spark’s user folder in HDFS
+#   shell: |
+#     sudo -u {{}} hadoop fs -mkdir -p /user/{{spark_user}}
+#     hadoop fs -chown -R {{spark_user}}:{{spark_group}} /user/{{spark_user}}
 
 - name: "Copy {{spark_tar_name}}"
   copy:
-    src: "{{spark_tar_path}}"
+    src: "{{configure_files_path}}/{{spark_tar_name}}"
     dest: "{{spark_user_home}}/{{spark_tar_name}}"
-  ignore_errors: True
-  when: not copiedSpark.stat.exists
+    owner: "{{spark_user}}"
+    group: "{{spark_group}}"
+  ignore_errors: no
+  tags:
+    - spark
 
-- name: "Download Spark from {{spark_download_url}}"
+- name: "Check if {{ spark_tar_name }} exists"
+  stat:
+    path: "{{ spark_user_home }}/{{spark_tar_name }}"
+  register:
+    is_spark_copied
+  tags:
+    - spark
+  
+- name: "Download Spark"
   get_url:
     dest: "{{spark_user_name}}/{{spark_tar_name}}"
     url: "{{spark_download_url}}"
-  when: not copiedSpark.stat.exists
+    owner: "{{spark_user}}"
+    group: "{{spark_group}}"
+  when: not is_spark_copied.stat.exists
+  tags:
+    - spark
 
 - name: "Unpack {{ spark_tar_name }}"
   unarchive:
     copy: no
     src: "{{spark_user_home}}/{{spark_tar_name}}"
     dest: "{{spark_user_home}}"
+  tags:
+    - spark
 
   
 - name: create spark log directory
   file:
     path: "{{spark_log_directory}}"
     state: directory
+    owner: "{{spark_user}}"
+    group: "{{spark_group}}"
+  tags:
+    - spark
 
-# - name: create hadoop native lib directory
-#   file:
-#     path: "{{spark_native_lib}}"
-#     state: directory
+- name: create hadoop native lib directory
+  file:
+    path: "{{spark_native_lib}}"
+    state: directory
+    owner: "{{ spark_user }}"
+    group: "{{ spark_group }}"
+  tags:
+    - spark
 
 - name: copy hadoop native lib
   copy:
-    src: "{{hadoop_native_lib_path}}"
+    src: "{{configure_files_path}}/{{hadoop_native_tar}}"
     dest: "{{spark_user_home}}"
+    owner: "{{spark_user}}"
+    group: "{{spark_group}}"
+  tags:
+    - spark
 
 - name: unarchive native hadoop lib
   unarchive:
-    src: "{{spark_user_home}}/{{hadoop_native_lib}}"
-    dest: "{{spark_user_home}}"
+    src: "{{spark_user_home}}/{{hadoop_native_tar}}"
+    dest: "{{spark_native_lib}}"
+    owner: "{{spark_user}}"
+    group: "{{spark_group}}"
     copy: no
+  tags:
+    - spark
+    
+- blockinfile:
+    path: /etc/profile
+    block: |
+      export SPARK_HOME={{spark_home}}
+      export PATH=$PATH:$SPARK_HOME/bin
+  tags:
+    - spark
 
 - name: config spark
   template:
@@ -55,6 +110,8 @@
     - ./conf/slaves
     - ./conf/spark-env.sh
     - ./conf/log4j.properties
+  tags:
+    - spark
 
 - name: config spark-master.service
   template:
@@ -80,4 +137,4 @@
   service:
     name: spark-slave
     state: restarted
-  when: spark_is_slave is defined spark_is_slave == "true"
+  when: spark_is_slave is defined and spark_is_slave == "true"

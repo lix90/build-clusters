@@ -3,7 +3,7 @@
 ansible_distribution_major_version: 7
 ansible_check_mode: no
 ansible_ssh_user: "vagrant"
-configure_files_path: ~/Documents/spark-configure-files
+
 
 # spark app
 app_version: 0.0.4-SNAPSHOT
@@ -18,6 +18,25 @@ users_csv_filename: users.csv
 ### JVM
 JAVA_HOME: /usr/lib/jvm/java
 
+### zookeeper
+zk1_host: 192.168.100.50
+zk2_host: 192.168.100.51
+zk3_host: 192.168.100.52
+kafka1_host: 192.168.100.50
+zookeeper_heap_size: 500m
+
+zk_hosts_without_port:
+  - zk1
+  - zk2
+  - zk3
+
+zk_hosts:
+  - "zk1:2181"
+  - "zk2:2181"
+  - "zk3:2181"
+
+zookeeper_connect: "{{ zk_hosts | join(',') }}"
+  
 ###spark hadoop
 spark_app_with_dependencies_path: "./files/{{app_name_with_dependencies}}.jar"
 spark_app_path: "./files/{{app_name}}.jar"
@@ -33,10 +52,11 @@ spark_master_ip: 192.168.100.50
 spark_slave1_ip: 192.168.100.51
 spark_slave2_ip: 192.168.100.52
 
-spark_user: spark
-spark_group: spark
+spark_user: vagrant
+spark_group: vagrant
+spark_version: 2.2.0
 spark_user_home: "/home/{{spark_user}}"
-spark_home: "{{spark_user_home}}/spark"
+spark_home: "{{spark_user_home}}/spark-{{spark_version}}-bin-hadoop{{hadoop_version}}"
 spark_log_directory: "{{spark_home}}/log"
 spark_native_lib: "{{spark_home}}/lib/native"
 
@@ -45,7 +65,12 @@ wordcount_dependencies_folder: "{{spark_home}}/wordcount-jars"
 
 
 ### hadoop
+hadoop_user: vagrant
+hadoop_group: vagrant
 hadoop_version: 2.7
+hadoop_full_version: 2.7.3
+hadoop_user_home: "/home/{{hadoop_user}}"
+hadoop_home: "{{hadoop_user_home}}/hadoop-{{hadoop_full_version}}"
 hadoop_namenode_ip: 192.168.100.50
 hadoopnamenode_port: 8020
 hadoop_datanode1: 192.168.100.51
@@ -67,8 +92,12 @@ hbase_regionservers:
   - offlinenode1
   - offlinenode2
 
-### base
+# ------------------------------------------------------------------------------
+# base
+configure_files_path: /Users/lix/Documents/spark-configure-files
+
 hosts: |
+  {{ip}} {{ ansible_nodename }}
   192.168.100.50 spark-master
   192.168.100.51 spark-slave1
   192.168.100.52 spark-slave2
@@ -78,3 +107,15 @@ hosts: |
   192.168.100.51 offlinenode1
   192.168.100.52 offlinenode2
   192.168.100.53 offlinenode3
+  192.168.11.52 hbasemaster
+  # 192.168.11.154 gangliamaster
+  # 192.168.11.154 zabbixserver
+  # {{ kafka1_host }} kafka1
+  {{ zk1_host }} zk1
+  {{ zk2_host }} zk2
+  {{ zk3_host }} zk3
+
+# ------------------------------------------------------------------------------
+# R & RStudio
+rstudio_user: vagrant
+rstudio_server_version: 1.0.153

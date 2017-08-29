@@ -1,7 +1,7 @@
 
-spark-master ansible_ssh_host=127.0.0.1 ansible_ssh_port=2222
-spark-slave1 ansible_ssh_host=127.0.0.1 ansible_ssh_port=2200
-spark-slave2 ansible_ssh_host=127.0.0.1 ansible_ssh_port=2201
+spark-master ansible_ssh_host=127.0.0.1 ansible_ssh_port=2222 ip=192.168.100.50
+spark-slave1 ansible_ssh_host=127.0.0.1 ansible_ssh_port=2200 ip=192.168.100.51
+spark-slave2 ansible_ssh_host=127.0.0.1 ansible_ssh_port=2201 ip=192.168.100.52
 
 [master]
 spark-master ansible_ssh_port=2222 hadoop_is_namenode="true" spark_is_master="true"
